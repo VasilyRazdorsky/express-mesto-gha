@@ -33,11 +33,12 @@ const getUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { body } = req;
+
     const user = await User.create(body);
 
     return res.status(201).json(user);
   } catch (error) {
-    return res.status(500).json({
+    return res.status(400).json({
       message: 'Произошла ошибка',
     });
   }
