@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name : {
+  name: {
     type: String,
     required: true,
     minlength: 2,
     maxlength: 30,
   },
-  about : {
+  about: {
     type: String,
     required: true,
     minlength: 2,
@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
-  }
+  },
 });
 
 const userModel = mongoose.model('user', userSchema);

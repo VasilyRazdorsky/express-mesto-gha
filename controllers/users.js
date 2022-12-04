@@ -5,20 +5,14 @@ const getUsers = async (req, res) => {
   return res.status(200).json(users);
 };
 
-const getUser = async (req, res) => {
-  return res.status(200).send({
-    getUser: true
-  });
-};
+const getUser = async (req, res) => res.status(200).send({ getUser: true });
 
-const createUser = async (req, res) => {
-  return res.status(200).send({
-    createUser: true
-  });
-};
+const createUser = async (req, res) => res.status(200).send({
+  createUser: true,
+});
 
 module.exports = {
   getUsers,
   getUser,
-  createUser
+  createUser,
 };
