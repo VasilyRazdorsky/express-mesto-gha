@@ -4,7 +4,7 @@ const errorTexts = require('../constants');
 const getCards = async (req, res) => {
   try {
     const cards = await Card.find({});
-    cards.populate(['owner', 'likes']);
+    //cards.populate(['owner', 'likes']);
     return res.status(200).json(cards);
   } catch (err) {
     return res.status(500).json({
@@ -62,7 +62,7 @@ const addLike = async (req, res) => {
       $addToSet: { likes: req.user._id },
     }, { new: true });
 
-    card.populate(['owner', 'likes']);
+    //card.populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(404).json({
@@ -90,7 +90,7 @@ const deleteLike = async (req, res) => {
       $pull: { likes: req.user._id },
     }, { new: true });
 
-    card.populate(['owner', 'likes']);
+    //card.populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(404).json({
