@@ -42,7 +42,7 @@ const deleteCard = async (req, res) => {
     }
     return res.status(200).json(card);
   } catch (error) {
-    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+    if (error.name === 'TypeError') {
       return res.status(400).json({
         message: 'Некорректный id',
       });
@@ -68,7 +68,7 @@ const addLike = async (req, res) => {
 
     return res.status(200).json(card);
   } catch (error) {
-    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+    if (error.name === 'TypeError') {
       return res.status(400).json({
         message: 'Некорректный id',
       });
@@ -94,7 +94,7 @@ const deleteLike = async (req, res) => {
 
     return res.status(200).json(card);
   } catch (error) {
-    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+    if (error.name === 'TypeError') {
       return res.status(400).json({
         message: 'Некорректный id',
       });

@@ -24,7 +24,7 @@ const getUser = async (req, res) => {
 
     return res.status(200).json(user);
   } catch (error) {
-    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+    if (error.name === 'TypeError') {
       return res.status(400).json({
         message: 'Некорректный id',
       });
@@ -59,28 +59,19 @@ const updateProfile = async (req, res) => {
     const { name, about } = req.body;
     const id = req.user._id;
 
-    if (name && about) {
-      if (name.length <= 30 && name.length >= 2 && about.length <= 30 && about.length >= 2) {
-        const user = await User.findByIdAndUpdate(id, { name, about }, { new: true });
-        return res.status(200).json(user);
-      }
-    } if (name && !about) {
-      if (name.length <= 30 && name.length >= 2) {
-        const user = await User.findByIdAndUpdate(id, { name }, { new: true });
-        return res.status(200).json(user);
-      }
-    } if (!name && about) {
-      if (about.length <= 30 && about.length >= 2) {
-        const user = await User.findByIdAndUpdate(id, { about }, { new: true });
-        return res.status(200).json(user);
-      }
-    }
-    return res.status(400).json({
-      message: 'Некорректные данные',
+    const user = await User.findByIdAndUpdate(id, { name, about }, {
+      new: true,
+      runValidators: true,
     });
+    return res.status(200).json(user);
   } catch (error) {
-    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({
+        message: 'Некорректные данные при обновлении пользователя',
+      });
+    }
+    if (error.name === 'TypeError') {
+      return res.status(404).json({
         message: 'Некорректный id',
       });
     }
@@ -93,23 +84,23 @@ const updateProfile = async (req, res) => {
 const updateAvatar = async (req, res) => {
   try {
     const { avatar } = req.body;
-    if (avatar) {
-      const id = req.user._id;
-
-      const user = await User.findByIdAndUpdate(id, { avatar }, { new: true });
-
-      if (!user) {
-        return res.status(404).json({
-          message: 'Пользователь не найден',
-        });
-      }
-
-      return res.status(200).json(user);
-    }
-    return res.status(400).json({
-      message: 'Некорректные данные',
+    const id = req.user._id;
+    const user = await User.findByIdAndUpdate(id, { avatar }, {
+      new: true,
+      runValidators: true,
     });
+    if (!user) {
+      return res.status(404).json({
+        message: 'Пользователь не найден',
+      });
+    }
+    return res.status(200).json(user);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: 'Некорректные данные',
+      });
+    }
     return res.status(500).json({
       message: 'Произошла ошибка',
     });
