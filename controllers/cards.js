@@ -53,8 +53,62 @@ const deleteCard = async (req, res) => {
   }
 };
 
+const addLike = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const card = await Card.findByIdAndUpdate(cardId, {
+      $addToSet: { likes: req.user._id },
+    }, { new: true });
+
+    if (!card) {
+      return res.status(404).json({
+        message: 'Карточка не найдена',
+      });
+    }
+
+    return res.status(200).json(card);
+  } catch (error) {
+    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+      return res.status(400).json({
+        message: 'Некорректный id',
+      });
+    }
+    return res.status(500).json({
+      message: 'Произошла ошибка',
+    });
+  }
+};
+
+const deleteLike = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const card = await Card.findByIdAndUpdate(cardId, {
+      $pull: { likes: req.user._id },
+    }, { new: true });
+
+    if (!card) {
+      return res.status(404).json({
+        message: 'Карточка не найдена',
+      });
+    }
+
+    return res.status(200).json(card);
+  } catch (error) {
+    if ((error.name === 'CastError') || (error.name === 'TypeError')) {
+      return res.status(400).json({
+        message: 'Некорректный id',
+      });
+    }
+    return res.status(500).json({
+      message: 'Произошла ошибка',
+    });
+  }
+};
+
 module.exports = {
   getCards,
   createCard,
   deleteCard,
+  addLike,
+  deleteLike,
 };
