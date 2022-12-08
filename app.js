@@ -17,6 +17,8 @@ app.use((req, res, next) => {
 
   next();
 });
+app.use('/users', usersRouter);
+app.use('/cards', cardsRouter);
 
 app.use('*', (req, res, next) => {
   res.status(404).json({
@@ -24,9 +26,6 @@ app.use('*', (req, res, next) => {
   });
   next();
 });
-
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
