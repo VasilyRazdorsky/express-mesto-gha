@@ -3,8 +3,8 @@ const errorTexts = require('../constants');
 
 const getCards = async (req, res) => {
   try {
-    const cards = await Card.find({});
-    await cards.populate(['owner', 'likes']);
+    const cards = await Card.find({}).populate(['owner', 'likes']);
+
     return res.status(200).json(cards);
   } catch (err) {
     return res.status(500).json({
@@ -15,10 +15,9 @@ const getCards = async (req, res) => {
 
 const createCard = async (req, res) => {
   try {
-    const { body } = req;
-    body.owner = req.user._id;
+    const { name, link } = req.body;
 
-    const card = await Card.create(body);
+    const card = await Card.create({ name, link, owner: req.user._id });
 
     return res.status(201).json(card);
   } catch (error) {
@@ -60,7 +59,7 @@ const addLike = async (req, res) => {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(cardId, {
       $addToSet: { likes: req.user._id },
-    }, { new: true });
+    }, { new: true }).populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(404).json({
@@ -68,7 +67,6 @@ const addLike = async (req, res) => {
       });
     }
 
-    await card.populate(['owner', 'likes']);
     return res.status(200).json(card);
   } catch (error) {
     if (error.name === 'CastError') {
@@ -87,7 +85,7 @@ const deleteLike = async (req, res) => {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(cardId, {
       $pull: { likes: req.user._id },
-    }, { new: true });
+    }, { new: true }).populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(404).json({
@@ -95,7 +93,6 @@ const deleteLike = async (req, res) => {
       });
     }
 
-    await card.populate(['owner', 'likes']);
     return res.status(200).json(card);
   } catch (error) {
     if (error.name === 'CastError') {
