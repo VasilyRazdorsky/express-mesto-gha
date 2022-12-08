@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const errorTexts = require('../constants');
 
 const getUsers = async (req, res) => {
   try {
@@ -6,7 +7,7 @@ const getUsers = async (req, res) => {
     return res.status(200).json(users);
   } catch (error) {
     return res.status(500).json({
-      message: 'Произошла ошибка',
+      message: errorTexts.baseError,
     });
   }
 };
@@ -18,19 +19,19 @@ const getUser = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: 'Пользователь не найден',
+        message: errorTexts.userNotFound,
       });
     }
 
     return res.status(200).json(user);
   } catch (error) {
-    if (error.name === 'TypeError') {
+    if (error.name === 'CastError') {
       return res.status(400).json({
-        message: 'Некорректный id',
+        message: errorTexts.incorrectId,
       });
     }
     return res.status(500).json({
-      message: 'Произошла ошибка',
+      message: errorTexts.baseError,
     });
   }
 };
@@ -45,11 +46,11 @@ const createUser = async (req, res) => {
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({
-        message: 'Некорректные данные при создании пользователя',
+        message: errorTexts.incorrectData,
       });
     }
     return res.status(500).json({
-      message: 'Произошла ошибка',
+      message: errorTexts.baseError,
     });
   }
 };
@@ -63,20 +64,20 @@ const updateProfile = async (req, res) => {
       new: true,
       runValidators: true,
     });
+    if (!user) {
+      return res.status(404).json({
+        message: errorTexts.userNotFound,
+      });
+    }
     return res.status(200).json(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({
-        message: 'Некорректные данные при обновлении пользователя',
-      });
-    }
-    if (error.name === 'TypeError') {
-      return res.status(404).json({
-        message: 'Некорректный id',
+        message: errorTexts.incorrectData,
       });
     }
     return res.status(500).json({
-      message: 'Произошла ошибка',
+      message: errorTexts.baseError,
     });
   }
 };
@@ -91,18 +92,18 @@ const updateAvatar = async (req, res) => {
     });
     if (!user) {
       return res.status(404).json({
-        message: 'Пользователь не найден',
+        message: errorTexts.userNotFound,
       });
     }
     return res.status(200).json(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({
-        message: 'Некорректные данные',
+        message: errorTexts.incorrectData,
       });
     }
     return res.status(500).json({
-      message: 'Произошла ошибка',
+      message: errorTexts.baseError,
     });
   }
 };
