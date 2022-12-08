@@ -113,7 +113,7 @@ const updateAvatar = async (req, res) => {
         });
       }
 
-      return res.status(201).json(user);
+      return res.status(200).json(user);
     }
     return res.status(400).json({
       message: 'Некорректные данные',
