@@ -64,28 +64,19 @@ const updateProfile = async (req, res) => {
         const user = await User.findByIdAndUpdate(id, { name, about }, { new: true });
         return res.status(200).json(user);
       }
-      return res.status(400).json({
-        message: 'Некорректные данные',
-      });
     } if (name && !about) {
       if (name.length <= 30 && name.length >= 2) {
         const user = await User.findByIdAndUpdate(id, { name }, { new: true });
         return res.status(200).json(user);
       }
-      return res.status(400).json({
-        message: 'Некорректные данные',
-      });
     } if (!name && about) {
       if (about.length <= 30 && about.length >= 2) {
         const user = await User.findByIdAndUpdate(id, { about }, { new: true });
         return res.status(200).json(user);
       }
-      return res.status(400).json({
-        message: 'Некорректные данные',
-      });
     }
-    return res.status(500).json({
-      message: 'Произошла ошибка',
+    return res.status(400).json({
+      message: 'Некорректные данные',
     });
   } catch (error) {
     if ((error.name === 'CastError') || (error.name === 'TypeError')) {
