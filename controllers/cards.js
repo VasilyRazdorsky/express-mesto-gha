@@ -1,13 +1,13 @@
 const Card = require('../models/card');
-const errorTexts = require('../constants');
+const { errorTexts, httpAnswerCodes } = require('../constants');
 
 const getCards = async (req, res) => {
   try {
     const cards = await Card.find({}).populate(['owner', 'likes']);
 
-    return res.status(200).json(cards);
+    return res.status(httpAnswerCodes.validOperationCode).json(cards);
   } catch (err) {
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -19,14 +19,14 @@ const createCard = async (req, res) => {
 
     const card = await Card.create({ name, link, owner: req.user._id });
 
-    return res.status(201).json(card);
+    return res.status(httpAnswerCodes.validCreationCode).json(card);
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectData,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -37,18 +37,18 @@ const deleteCard = async (req, res) => {
     const { cardId } = req.params;
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.cardNotFound,
       });
     }
-    return res.status(200).json(card);
+    return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectId,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -62,19 +62,19 @@ const addLike = async (req, res) => {
     }, { new: true }).populate(['owner', 'likes']);
 
     if (!card) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.cardNotFound,
       });
     }
 
-    return res.status(200).json(card);
+    return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectId,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -88,19 +88,19 @@ const deleteLike = async (req, res) => {
     }, { new: true }).populate(['owner', 'likes']);
 
     if (!card) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.cardNotFound,
       });
     }
 
-    return res.status(200).json(card);
+    return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectId,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }

@@ -1,12 +1,12 @@
 const User = require('../models/user');
-const errorTexts = require('../constants');
+const { errorTexts, httpAnswerCodes } = require('../constants');
 
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({});
-    return res.status(200).json(users);
+    return res.status(httpAnswerCodes.validOperationCode).json(users);
   } catch (error) {
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -18,19 +18,19 @@ const getUser = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.userNotFound,
       });
     }
 
-    return res.status(200).json(user);
+    return res.status(httpAnswerCodes.validOperationCode).json(user);
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectId,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -42,14 +42,14 @@ const createUser = async (req, res) => {
 
     const user = await User.create(body);
 
-    return res.status(201).json(user);
+    return res.status(httpAnswerCodes.validCreationCode).json(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectData,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -65,18 +65,23 @@ const updateProfile = async (req, res) => {
       runValidators: true,
     });
     if (!user) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.userNotFound,
       });
     }
-    return res.status(200).json(user);
+    return res.status(httpAnswerCodes.validOperationCode).json(user);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
+        message: errorTexts.incorrectId,
+      });
+    }
     if (error.name === 'ValidationError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectData,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
@@ -91,18 +96,23 @@ const updateAvatar = async (req, res) => {
       runValidators: true,
     });
     if (!user) {
-      return res.status(404).json({
+      return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.userNotFound,
       });
     }
-    return res.status(200).json(user);
+    return res.status(httpAnswerCodes.validOperationCode).json(user);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
+        message: errorTexts.incorrectId,
+      });
+    }
     if (error.name === 'ValidationError') {
-      return res.status(400).json({
+      return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectData,
       });
     }
-    return res.status(500).json({
+    return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
     });
   }
