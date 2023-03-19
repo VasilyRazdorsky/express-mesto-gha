@@ -9,13 +9,11 @@ usersRouter.get('/', getUsers);
 // GET /users/:userId
 usersRouter.get('/:userId', getUser);
 
-
 // POST /users
 usersRouter.post('/', createUser);
 
 // PATCH /users/me
 usersRouter.patch('/me', updateProfile);
-
 
 // PATCH /users/avatar
 usersRouter.patch('/me/avatar', updateAvatar);

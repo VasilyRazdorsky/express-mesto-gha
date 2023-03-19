@@ -28,13 +28,13 @@ const userSchema = new mongoose.Schema({
       validator(v) {
         return validator.isEmail(v);
       },
-      message: 'Поле "email" должно быть валидным email-адресом.'
-    }
+      message: 'Поле "email" должно быть валидным email-адресом.',
+    },
   },
   password: {
     type: String,
     required: true,
-  }
+  },
 });
 
 const userModel = mongoose.model('user', userSchema);

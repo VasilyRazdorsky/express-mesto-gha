@@ -40,11 +40,15 @@ const getUser = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { name, about, avatar, email, password } = req.body;
+    const {
+      name, about, avatar, email, password,
+    } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({name, about, avatar, email, password: hashedPassword});
+    const user = await User.create({
+      name, about, avatar, email, password: hashedPassword,
+    });
 
     return res.status(httpAnswerCodes.validCreationCode).json(user);
   } catch (error) {
@@ -56,7 +60,7 @@ const createUser = async (req, res) => {
     if (error.code === 11000) {
       return res.status(httpAnswerCodes.duplicateErrorCode).json({
         message: errorTexts.alreadyRegisteredError,
-      })
+      });
     }
     return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
