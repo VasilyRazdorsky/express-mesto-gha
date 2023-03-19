@@ -2,139 +2,141 @@ const bcrypt = require('bcrypt');
 
 const User = require('../models/user');
 const { errorTexts, httpAnswerCodes } = require('../constants');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
+const IncorrectAuthorisationError = require('../errors/IncorrectAuthorisationError');
+const IncorrectDataError = require('../errors/IncorrectDataError');
 
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find({});
-    return res.status(httpAnswerCodes.validOperationCode).json(users);
-  } catch (error) {
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.status(httpAnswerCodes.validOperationCode).json(users))
+    .catch((err) => {
+      next(err);
     });
-  }
 };
 
-const getUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const user = await User.findById(userId);
+const getUser = (req, res, next) => {
+  const { userId } = req.params;
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(errorTexts.userNotFound);
+      }
 
-    if (!user) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.userNotFound,
-      });
-    }
-
-    return res.status(httpAnswerCodes.validOperationCode).json(user);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
-    }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
+      return res.status(httpAnswerCodes.validOperationCode).json(user);
+    })
+    .catch((error) => {
+      let err = error;
+      if (error.name === 'CastError') {
+        err = new IncorrectDataError(errorTexts.incorrectId);
+      }
+      next(err);
     });
-  }
 };
 
-const createUser = async (req, res) => {
-  try {
-    const {
-      name, about, avatar, email, password,
-    } = req.body;
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-      name, about, avatar, email, password: hashedPassword,
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => res.status(httpAnswerCodes.validCreationCode).json(user))
+    .catch((error) => {
+      let err = error;
+      if (error.name === 'ValidationError') {
+        err = new ValidationError(errorTexts.incorrectData);
+      } else if (error.code === 11000) {
+        err = new Error(errorTexts.alreadyRegisteredError);
+        err.statusCode = httpAnswerCodes.duplicateErrorCode;
+      }
+      next(err);
     });
-
-    return res.status(httpAnswerCodes.validCreationCode).json(user);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectData,
-      });
-    }
-    if (error.code === 11000) {
-      return res.status(httpAnswerCodes.duplicateErrorCode).json({
-        message: errorTexts.alreadyRegisteredError,
-      });
-    }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
-  }
 };
 
-const updateProfile = async (req, res) => {
-  try {
-    const { name, about } = req.body;
-    const id = req.user._id;
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
 
-    const user = await User.findByIdAndUpdate(id, { name, about }, {
-      new: true,
-      runValidators: true,
-    });
-    if (!user) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.userNotFound,
-      });
-    }
-    return res.status(httpAnswerCodes.validOperationCode).json(user);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
-    }
-    if (error.name === 'ValidationError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectData,
-      });
-    }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
-  }
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        throw new IncorrectAuthorisationError('Неправильные почта или пароль');
+      }
+
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        // хеши не совпали — отклоняем промис
+        throw new IncorrectAuthorisationError('Неправильные почта или пароль');
+      }
+
+      res.status(httpAnswerCodes.validOperationCode).send({ message: 'Всё верно!' });
+    })
+    .catch((err) => { next(err); });
 };
 
-const updateAvatar = async (req, res) => {
-  try {
-    const { avatar } = req.body;
-    const id = req.user._id;
-    const user = await User.findByIdAndUpdate(id, { avatar }, {
-      new: true,
-      runValidators: true,
+const updateProfile = (req, res, next) => {
+  const { name, about } = req.body;
+  const id = req.user._id;
+
+  User.findByIdAndUpdate(id, { name, about }, {
+    new: true,
+    runValidators: true,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(errorTexts.userNotFound);
+      }
+
+      return res.status(httpAnswerCodes.validOperationCode).json(user);
+    })
+    .catch((error) => {
+      let err = error;
+      if (error.name === 'CastError') {
+        err = new IncorrectDataError(errorTexts.incorrectId);
+      }
+      if (error.name === 'ValidationError') {
+        err = new ValidationError(errorTexts.incorrectData);
+      }
+      next(err);
     });
-    if (!user) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.userNotFound,
-      });
-    }
-    return res.status(httpAnswerCodes.validOperationCode).json(user);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
-    }
-    if (error.name === 'ValidationError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectData,
-      });
-    }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
+};
+
+const updateAvatar = (req, res, next) => {
+  const { avatar } = req.body;
+  const id = req.user._id;
+
+  User.findByIdAndUpdate(id, { avatar }, {
+    new: true,
+    runValidators: true,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(errorTexts.userNotFound);
+      }
+
+      return res.status(httpAnswerCodes.validOperationCode).json(user);
+    })
+    .catch((error) => {
+      let err = error;
+      if (error.name === 'CastError') {
+        err = new IncorrectDataError(errorTexts.incorrectId);
+      }
+      if (error.name === 'ValidationError') {
+        err = new ValidationError(errorTexts.incorrectData);
+      }
+      next(err);
     });
-  }
 };
 
 module.exports = {
   getUsers,
   getUser,
   createUser,
+  login,
   updateProfile,
   updateAvatar,
 };
