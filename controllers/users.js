@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 const User = require('../models/user');
 const { errorTexts, httpAnswerCodes } = require('../constants');
 
@@ -38,9 +40,11 @@ const getUser = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { body } = req;
+    const { name, about, avatar, email, password } = req.body;
 
-    const user = await User.create(body);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({name, about, avatar, email, password: hashedPassword});
 
     return res.status(httpAnswerCodes.validCreationCode).json(user);
   } catch (error) {
@@ -48,6 +52,11 @@ const createUser = async (req, res) => {
       return res.status(httpAnswerCodes.incorrectDataCode).json({
         message: errorTexts.incorrectData,
       });
+    }
+    if (error.code === 11000) {
+      return res.status(httpAnswerCodes.duplicateErrorCode).json({
+        message: errorTexts.alreadyRegisteredError,
+      })
     }
     return res.status(httpAnswerCodes.baseErrorCode).json({
       message: errorTexts.baseError,
