@@ -35,6 +35,20 @@ const getUser = (req, res, next) => {
     });
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(errorTexts.userNotFound);
+      }
+
+      return res.status(httpAnswerCodes.validOperationCode).json(user);
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
 const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
@@ -158,6 +172,7 @@ const updateAvatar = (req, res, next) => {
 module.exports = {
   getUsers,
   getUser,
+  getCurrentUser,
   createUser,
   login,
   updateProfile,
