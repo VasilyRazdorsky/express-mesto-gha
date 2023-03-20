@@ -16,7 +16,10 @@ const httpAnswerCodes = {
   validCreationCode: 201,
 };
 
+const JWT_SECRET = 'JWT_SECRET';
+
 module.exports = {
   errorTexts,
   httpAnswerCodes,
+  JWT_SECRET,
 };

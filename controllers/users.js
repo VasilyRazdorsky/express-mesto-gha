@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
+const jsonwebtoken = require('jsonwebtoken');
 
 const User = require('../models/user');
-const { errorTexts, httpAnswerCodes } = require('../constants');
+const { errorTexts, httpAnswerCodes, JWT_SECRET } = require('../constants');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const IncorrectAuthorisationError = require('../errors/IncorrectAuthorisationError');
@@ -39,9 +40,14 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  bcrypt.hash(password, 10)
+  bcrypt
+    .hash(password, 10)
     .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     }))
     .then((user) => res.status(httpAnswerCodes.validCreationCode).json(user))
     .catch((error) => {
@@ -65,27 +71,40 @@ const login = async (req, res, next) => {
         throw new IncorrectAuthorisationError('Неправильные почта или пароль');
       }
 
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        throw new IncorrectAuthorisationError('Неправильные почта или пароль');
-      }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            // хеши не совпали — отклоняем промис
+            throw new IncorrectAuthorisationError('Неправильные почта или пароль');
+          }
 
-      res.status(httpAnswerCodes.validOperationCode).send({ message: 'Всё верно!' });
+          return user;
+        });
     })
-    .catch((err) => { next(err); });
+    .then((user) => {
+      const jwt = jsonwebtoken.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+      res
+        .status(httpAnswerCodes.validOperationCode)
+        .send({ user, jwt });
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
 
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { name, about }, {
-    new: true,
-    runValidators: true,
-  })
+  User.findByIdAndUpdate(
+    id,
+    { name, about },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
     .then((user) => {
       if (!user) {
         throw new NotFoundError(errorTexts.userNotFound);
@@ -109,10 +128,14 @@ const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { avatar }, {
-    new: true,
-    runValidators: true,
-  })
+  User.findByIdAndUpdate(
+    id,
+    { avatar },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
     .then((user) => {
       if (!user) {
         throw new NotFoundError(errorTexts.userNotFound);
