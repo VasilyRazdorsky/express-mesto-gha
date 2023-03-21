@@ -79,7 +79,7 @@ const createUser = (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         throw new IncorrectAuthorisationError('Неправильные почта или пароль');
