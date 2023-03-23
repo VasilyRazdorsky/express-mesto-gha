@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const isURL = require('validator/lib/isURL');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,7 +16,6 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    validate: [isURL, 'Некорректный URL'],
   },
   email: {
     type: String,
