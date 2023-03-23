@@ -17,12 +17,16 @@ usersRouter.get('/:userId', getUser);
 // PATCH /users/me
 usersRouter.patch('/me', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
   }),
 }), updateProfile);
 
 // PATCH /users/me/avatar
-usersRouter.patch('/me/avatar', updateAvatar);
+usersRouter.patch('/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required(),
+  }),
+}), updateAvatar);
 
 module.exports = usersRouter;

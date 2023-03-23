@@ -63,7 +63,9 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.status(httpAnswerCodes.validCreationCode).json(user))
+    .then((user) => res.status(httpAnswerCodes.validCreationCode).send({
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email, _id: user._id,
+    }))
     .catch((error) => {
       let err = error;
       if (error.name === 'ValidationError') {
