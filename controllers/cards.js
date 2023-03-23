@@ -1,5 +1,8 @@
 const Card = require('../models/card');
 const { errorTexts, httpAnswerCodes } = require('../constants');
+const NotFoundError = require('../errors/NotFoundError');
+const AccessError = require('../errors/AccessError');
+const IncorrectDataError = require('../errors/IncorrectDataError');
 
 const getCards = async (req, res) => {
   try {
@@ -32,10 +35,30 @@ const createCard = async (req, res) => {
   }
 };
 
-const deleteCard = async (req, res) => {
+const deleteCard = (req, res, next) => Card.findById(req.params.cardId)
+  .then((card) => {
+    if (!card) {
+      throw new NotFoundError(errorTexts.cardNotFound);
+    }
+
+    if (card.owner.equals(req.user._id.toString())) {
+      Card.findByIdAndDelete(card._id).then();
+      return res.status(httpAnswerCodes.validOperationCode).json(card);
+    }
+
+    throw new AccessError(errorTexts.cardAccessError);
+  })
+  .catch((err) => {
+    let error = err;
+    if (err.name === 'CastError') {
+      error = new IncorrectDataError(errorTexts.incorrectId);
+    }
+    next(error);
+  });
+/* {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndDelete(cardId);
+    const card = Card.findById(cardId);
     if (!card) {
       return res.status(httpAnswerCodes.objNotFoundCode).json({
         message: errorTexts.cardNotFound,
@@ -53,13 +76,18 @@ const deleteCard = async (req, res) => {
     });
   }
 };
+*/
 
 const addLike = async (req, res) => {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndUpdate(cardId, {
-      $addToSet: { likes: req.user._id },
-    }, { new: true }).populate(['owner', 'likes']);
+    const card = await Card.findByIdAndUpdate(
+      cardId,
+      {
+        $addToSet: { likes: req.user._id },
+      },
+      { new: true },
+    ).populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(httpAnswerCodes.objNotFoundCode).json({
@@ -83,9 +111,13 @@ const addLike = async (req, res) => {
 const deleteLike = async (req, res) => {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndUpdate(cardId, {
-      $pull: { likes: req.user._id },
-    }, { new: true }).populate(['owner', 'likes']);
+    const card = await Card.findByIdAndUpdate(
+      cardId,
+      {
+        $pull: { likes: req.user._id },
+      },
+      { new: true },
+    ).populate(['owner', 'likes']);
 
     if (!card) {
       return res.status(httpAnswerCodes.objNotFoundCode).json({
