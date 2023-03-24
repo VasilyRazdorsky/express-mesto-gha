@@ -130,9 +130,6 @@ const updateProfile = (req, res, next) => {
     })
     .catch((error) => {
       let err = error;
-      if (error.name === 'CastError') {
-        err = new IncorrectDataError(errorTexts.incorrectId);
-      }
       if (error.name === 'ValidationError') {
         err = new ValidationError(errorTexts.incorrectData);
       }
@@ -161,9 +158,6 @@ const updateAvatar = (req, res, next) => {
     })
     .catch((error) => {
       let err = error;
-      if (error.name === 'CastError') {
-        err = new IncorrectDataError(errorTexts.incorrectId);
-      }
       if (error.name === 'ValidationError') {
         err = new ValidationError(errorTexts.incorrectData);
       }

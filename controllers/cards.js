@@ -3,6 +3,7 @@ const { errorTexts, httpAnswerCodes } = require('../constants');
 const NotFoundError = require('../errors/NotFoundError');
 const AccessError = require('../errors/AccessError');
 const IncorrectDataError = require('../errors/IncorrectDataError');
+const ValidationError = require('../errors/ValidationError');
 
 const getCards = async (req, res) => {
   try {
@@ -10,9 +11,7 @@ const getCards = async (req, res) => {
 
     return res.status(httpAnswerCodes.validOperationCode).json(cards);
   } catch (err) {
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
+    next(err);
   }
 };
 
@@ -24,59 +23,36 @@ const createCard = async (req, res) => {
 
     return res.status(httpAnswerCodes.validCreationCode).json(card);
   } catch (error) {
+    let err = error;
     if (error.name === 'ValidationError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectData,
-      });
+      err = new ValidationError(errorTexts.incorrectData);
     }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
+    next(err);
   }
 };
 
-const deleteCard = (req, res, next) => Card.findById(req.params.cardId)
-  .then((card) => {
+const deleteCard = async (req, res, next) => {
+  try {
+    const card = await Card.findById(req.params.cardId);
     if (!card) {
       throw new NotFoundError(errorTexts.cardNotFound);
     }
 
     if (card.owner.equals(req.user._id.toString())) {
-      Card.findByIdAndDelete(card._id).then();
-      return res.status(httpAnswerCodes.validOperationCode).json(card);
+      const deletedCard = await Card.findByIdAndDelete(card._id);
+      return res.status(httpAnswerCodes.validOperationCode).json(deletedCard);
     }
 
     throw new AccessError(errorTexts.cardAccessError);
-  })
-  .catch((err) => {
+  } catch(err) {
     let error = err;
     if (err.name === 'CastError') {
       error = new IncorrectDataError(errorTexts.incorrectId);
     }
     next(error);
-  });
-/* {
-  try {
-    const { cardId } = req.params;
-    const card = Card.findById(cardId);
-    if (!card) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.cardNotFound,
-      });
-    }
-    return res.status(httpAnswerCodes.validOperationCode).json(card);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
-    }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
   }
-};
-*/
+
+}
 
 const addLike = async (req, res) => {
   try {
@@ -90,21 +66,16 @@ const addLike = async (req, res) => {
     ).populate(['owner', 'likes']);
 
     if (!card) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.cardNotFound,
-      });
+      throw new NotFoundError(errorTexts.cardNotFound);
     }
 
     return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
+    let err = error
     if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
+      err = new IncorrectDataError(errorTexts.incorrectId);
     }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
+    next(err);
   }
 };
 
@@ -120,21 +91,16 @@ const deleteLike = async (req, res) => {
     ).populate(['owner', 'likes']);
 
     if (!card) {
-      return res.status(httpAnswerCodes.objNotFoundCode).json({
-        message: errorTexts.cardNotFound,
-      });
+      throw new NotFoundError(errorTexts.cardNotFound);
     }
 
     return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
+    let err = error
     if (error.name === 'CastError') {
-      return res.status(httpAnswerCodes.incorrectDataCode).json({
-        message: errorTexts.incorrectId,
-      });
+      err = new IncorrectDataError(errorTexts.incorrectId);
     }
-    return res.status(httpAnswerCodes.baseErrorCode).json({
-      message: errorTexts.baseError,
-    });
+    next(err);
   }
 };
 

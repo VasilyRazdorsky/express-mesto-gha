@@ -6,6 +6,7 @@ const errorTexts = {
   incorrectId: 'Некорректный id',
   alreadyRegisteredError: 'Пользователь с такими данными уже существует',
   cardAccessError: 'Взаимодействие с чужой карточкой невозможно',
+  needToAuthoriseError: 'Необходима авторизация',
 };
 
 const httpAnswerCodes = {
