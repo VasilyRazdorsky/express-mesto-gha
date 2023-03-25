@@ -1,5 +1,6 @@
 const usersRouter = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
+const { urlPattern } = require('../constants');
 
 const {
   getUsers, getUser, updateProfile, updateAvatar, getCurrentUser,
@@ -12,7 +13,11 @@ usersRouter.get('/', getUsers);
 usersRouter.get('/me', getCurrentUser);
 
 // GET /users/:userId
-usersRouter.get('/:userId', getUser);
+usersRouter.get('/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
+  }),
+}), getUser);
 
 // PATCH /users/me
 usersRouter.patch('/me', celebrate({
@@ -25,8 +30,7 @@ usersRouter.patch('/me', celebrate({
 // PATCH /users/me/avatar
 usersRouter.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    // eslint-disable-next-line no-useless-escape
-    avatar: Joi.string().required().regex(/(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w\.-]*)*\/?/i),
+    avatar: Joi.string().required().regex(urlPattern),
   }),
 }), updateAvatar);
 

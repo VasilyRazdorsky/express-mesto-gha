@@ -5,4 +5,4 @@ class AuthoriseFirstError extends Error {
   }
 }
 
-module.exports =  AuthoriseFirstError;
+module.exports = AuthoriseFirstError;

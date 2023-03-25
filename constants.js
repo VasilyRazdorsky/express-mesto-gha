@@ -7,6 +7,7 @@ const errorTexts = {
   alreadyRegisteredError: 'Пользователь с такими данными уже существует',
   cardAccessError: 'Взаимодействие с чужой карточкой невозможно',
   needToAuthoriseError: 'Необходима авторизация',
+  incorrectRouteError: 'Некорректный путь',
 };
 
 const httpAnswerCodes = {
@@ -20,8 +21,11 @@ const httpAnswerCodes = {
 
 const JWT_SECRET = 'JWT_SECRET';
 
+const urlPattern = /(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?/i;
+
 module.exports = {
   errorTexts,
   httpAnswerCodes,
   JWT_SECRET,
+  urlPattern,
 };

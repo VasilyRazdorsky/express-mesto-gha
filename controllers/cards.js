@@ -5,17 +5,17 @@ const AccessError = require('../errors/AccessError');
 const IncorrectDataError = require('../errors/IncorrectDataError');
 const ValidationError = require('../errors/ValidationError');
 
-const getCards = async (req, res) => {
+const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({}).populate(['owner', 'likes']);
-
     return res.status(httpAnswerCodes.validOperationCode).json(cards);
   } catch (err) {
     next(err);
   }
+  return null;
 };
 
-const createCard = async (req, res) => {
+const createCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
 
@@ -29,6 +29,7 @@ const createCard = async (req, res) => {
     }
     next(err);
   }
+  return null;
 };
 
 const deleteCard = async (req, res, next) => {
@@ -44,17 +45,17 @@ const deleteCard = async (req, res, next) => {
     }
 
     throw new AccessError(errorTexts.cardAccessError);
-  } catch(err) {
+  } catch (err) {
     let error = err;
     if (err.name === 'CastError') {
       error = new IncorrectDataError(errorTexts.incorrectId);
     }
     next(error);
   }
+  return null;
+};
 
-}
-
-const addLike = async (req, res) => {
+const addLike = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -71,15 +72,16 @@ const addLike = async (req, res) => {
 
     return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
-    let err = error
+    let err = error;
     if (error.name === 'CastError') {
       err = new IncorrectDataError(errorTexts.incorrectId);
     }
     next(err);
   }
+  return null;
 };
 
-const deleteLike = async (req, res) => {
+const deleteLike = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -96,12 +98,13 @@ const deleteLike = async (req, res) => {
 
     return res.status(httpAnswerCodes.validOperationCode).json(card);
   } catch (error) {
-    let err = error
+    let err = error;
     if (error.name === 'CastError') {
       err = new IncorrectDataError(errorTexts.incorrectId);
     }
     next(err);
   }
+  return null;
 };
 
 module.exports = {
