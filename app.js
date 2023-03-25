@@ -7,7 +7,7 @@ const cardsRouter = require('./routes/cards');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { urlPattern, errorTexts } = require('./constants');
-const IncorrectRouteError = require('./errors/IncorrectRouteError');
+const NotFoundError = require('./errors/NotFoundError');
 
 const { PORT = 3000 } = process.env;
 
@@ -39,8 +39,9 @@ app.use(auth);
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 
-app.use('*', () => {
-  throw new IncorrectRouteError(errorTexts.incorrectRouteError);
+app.use('*', (req, res, next) => {
+  const err = new NotFoundError(errorTexts.incorrectRouteError);
+  next(err);
 });
 
 app.use(errors());
